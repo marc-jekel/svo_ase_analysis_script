@@ -1,0 +1,1646 @@
+---
+title: "Social Values Relate to Search for Information in Social Money Allocation Tasks"
+date: "8/23/2021"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+---
+
+##### Author of script: Marc Jekel [marc.jekel@uni-koeln.de]
+##### Reference (if published)
+##### OSF-link to study materials: https://osf.io/jpdzc/
+
+# Load libraries
+
+
+```{r}
+
+rm(list = ls())
+
+set.seed(1234)
+
+library("ggplot2")
+library("gridExtra")
+library("grid")
+library("readr")
+library("ggExtra")
+library("dplyr")
+library("readxl")
+library("tidyverse")
+library("lme4")
+library("lmerTest")
+library("texreg")
+library("ggpubr")
+library("ggeffects")
+library("osfr")
+library("kableExtra")
+
+loadData = 0
+
+### connection to osf account marc_jekel_access_files
+
+if(loadData == 1){
+  
+osf_auth("Kfzgya7YPgdUU0ImGYCcjJUiF60mqpawwSJFIVNRUSUbu0tfXBstBf4QyCRlV5OvBnQRkl")
+
+osf_retrieve_node("z3nu4") %>%
+  osf_ls_files(pattern="csv") %>%
+  osf_download(conflicts = "overwrite")  
+  
+}
+
+sessionInfo()
+
+```
+
+# Study 1
+
+## Read in data
+
+```{r}
+dats_s1 = read.csv2("data_study_1.csv")
+
+```
+
+## Tasks social value orientation
+
+```{r}
+
+tasks_svo = 
+  rbind(
+    c(1.50,2.60,2.10,2.10),
+    c(0,-3,-0.80,-2.90),
+    c(3,0,2.90,-0.80),
+    c(-2.90,.80,-2.6,1.5),
+    c(-2.6,-1.5,-2.9,-.8),
+    c(-.8,2.9,0,3),
+    c(0,3,.8,2.9),
+    c(-.8,-2.9,-1.5,-2.6),
+    c(.8,-2.9,0,-3),
+    c(2.1,-2.1,1.5,-2.6),
+    c(2.9,-.8,2.6,-1.5),
+    c(-2.1,-2.1,-2.6,-1.5),
+    c(2.9,.8,3,0),
+    c(-1.5,-2.6,-2.1,-2.1),
+    c(-2.1,2.1,-1.5,2.6),
+    c(.8,2.9,1.5,2.6),
+    c(2.6,-1.5,2.1,-2.1),
+    c(-1.5,2.6,-.8,2.9),
+    c(1.5,-2.6,.8,-2.9),
+    c(-3,0,-2.9,.8),
+    c(2.6,1.5,2.9,.8),
+    c(-2.6,1.5,-2.1,2.1),
+    c(2.1,2.1,2.6,1.5),
+    c(-2.9,-.8,-3,0)
+  )
+
+colnames(tasks_svo) = c("self_1","other_1","self_2","other_2")
+
+SVO_choice = dats_s1[,13:36]
+SVO_choice = matrix(unlist(SVO_choice),ncol=ncol(SVO_choice))
+colnames(SVO_choice) = paste("SVO_",1:24,sep="")
+
+```
+
+## Angle social value orientation
+
+```{r}
+
+SVO_part = numeric()
+
+self_other_weights = numeric()
+
+for(loopP in 1 : nrow(dats_s1)){
+  
+  tasks_svo_p = numeric()
+  
+  for(loopT in 1 : 24){
+    
+    if(SVO_choice[loopP,loopT] == 1){
+      pickPart =   c(1,2)
+    } else {
+      pickPart = c(3,4)
+    }
+    
+    tasks_svo_p = rbind(tasks_svo_p,
+                        tasks_svo[loopT,pickPart])
+    
+  }
+  
+  self_other_mean= colSums(tasks_svo_p)
+  
+  self_other_weights = rbind(self_other_weights,self_other_mean)
+  
+  SVO_part = c(SVO_part,
+               atan(self_other_mean[2]/self_other_mean[1])*180/pi)
+}
+
+SVO_part_pl = data.frame(SVO_part)
+
+ggplot(SVO_part_pl, aes(x=SVO_part)) + geom_histogram() + 
+  labs(x = "Social value orientation")  +
+  scale_x_continuous(breaks = seq(-90, 90, by=10))
+
+dats_s1 = dats_s1[is.na(SVO_part)==FALSE,]
+
+self_other_weights = self_other_weights[is.na(SVO_part)==FALSE,]
+
+SVO_part = SVO_part[is.na(SVO_part)==FALSE]
+
+mean(SVO_part)
+sd(SVO_part)
+
+```
+
+## Demographics
+
+### Number of participants
+
+```{r}
+
+n_part_s1 = nrow(dats_s1)
+n_part_s1
+
+```
+
+### Age
+
+```{r}
+age = dats_s1$v_132_alter
+mean(age)
+sd(age)
+```
+
+### Gender
+
+```{r}
+
+# 1 = female, 2 = male, 3 = diverse
+
+gender = dats_s1$v_133_Geschlecht
+table(gender)
+
+```
+
+
+## Tasks with concealed information
+
+```{r}
+
+tasks = rbind(
+  
+  c(1.16,NA,.80, 1.50,NA,0),
+  c(NA,1.94,1.14,2.33,NA,0.34),
+  c(1.53,NA,2.17,NA,2.14,1.37),
+  c(0.16,NA,3.25,0.38,NA,2.45),
+  c(NA,4.44,4.06,NA,5.58,3.26),
+  c(2.74,NA,5.13,3,NA,4.33),
+  c(7.29,NA,5.93,NA,7.61,5.13),
+  c(9.01,NA,7.28,NA,9.20,6.48),
+  c(NA,0.18, 1.5,0.33,NA,0.8),
+  c(NA,0.91,1.84,1.03,NA,1.14),
+  c(2.35,NA,2.87,NA,4.23,2.17),
+  c(1.19,NA,3.99,0.99,NA,3.25),
+  c(2.23,NA,4.76,NA,1.35,3.60),
+  c(NA,6.59,5.83,NA,7.09,5.13),
+  c(NA,7.12,6.63,NA,7.68,5.93),
+  c(NA,8.27,7.98,NA,8.76,7.28),
+  c(0.86,NA,2.26,1.04,NA,1.19),
+  c(1.30,NA,2.44,NA,2.80,1.84),
+  c(3.40,NA,3.47,3.26,NA,2.87),
+  c(1.86,NA,4.30,NA,1.25,3.40),
+  c(3.51,NA,5.36,5.75,NA,4.76),
+  c(NA,5.10,6.43,6.52,NA,5.83),
+  c(4.60,NA,7.23,NA,6.81,6.63),
+  c(7.79,NA,8.57,NA,8.79,7.98)
+)
+
+colnames(tasks) = c("self_1_1","self_1_2","other_1",
+                    "self_2_1","self_2_2","other_2")
+
+tasks_compl = rbind(
+  
+  c(1.16,1.74,.80, 1.50,1.50,0),
+  c(1.30,1.94,1.14,2.33,1.01,0.34),
+  c(1.53,2.74,2.17,2.23,2.14,1.37),
+  c(0.16,5.19,3.25,0.38,5.07,2.45),
+  c(1.48,4.44,4.06,0.54,5.58,3.26),
+  c(2.74,4.49,5.13,3,3,4.33),
+  c(7.29,0.34,5.93,0.16,7.61,5.13),
+  c(9.01,0.27,7.28,0.28,9.20,6.48),
+  c(2.42,0.18, 1.5,0.33,2.57,0.8),
+  c(2.03,0.91,1.84,1.03,2.21,1.14),
+  c(2.35,1.62,2.87,0.04,4.23,2.17),
+  c(1.19,3.89,3.99,0.99,3.88,3.25),
+  c(2.23,2.96,4.76,3.51,1.35,3.60),
+  c(0.54,6.59,5.83,0.16,7.09,5.13),
+  c(0.61,7.12,6.63,0.40,7.68,5.93),
+  c(0.81,8.27,7.98,0.62,8.76,7.28),
+  c(0.86,1.34,2.26,1.04,1.33,1.19),
+  c(1.30,1.32,2.44,0.14,2.80,1.84),
+  c(3.40,0.41,3.47,3.26,0.71,2.87),
+  c(1.86,4.69,4.30,5.44,1.25,3.40),
+  c(3.51,2.19,5.36,5.75,0.11,4.76),
+  c(1.93,5.10,6.43,6.52,0.41,5.83),
+  c(4.60,2.55,7.23,0.44,6.81,6.63),
+  c(7.79,1.49,8.57,0.56,8.79,7.98)
+)
+
+colnames(tasks_compl) = c("self_1_1","self_1_2","other_1",
+                          "self_2_1","self_2_2","other_2")
+
+tasks_compl = data.frame(tasks_compl)
+
+own_o1 = rowSums(tasks_compl[,1:2])
+own_o2 = rowSums(tasks_compl[,3:4])
+
+t.test(own_o1,own_o2,var.equal = T)
+t.test(tasks_compl$other_1,tasks_compl$other_2,
+       var.equal=T)
+
+```
+
+## Attraction Search Effect
+
+```{r}
+
+ASE = dats_s1[,39:110]
+
+ASE = ASE[,seq(1,72,3)]
+ASE = matrix(unlist(ASE),ncol=ncol(ASE))
+ASE = ifelse(ASE == 4,1,ASE)
+ASE = ifelse(ASE == 3,2, ASE)
+
+codeSocial = c(2,2,2,2,2,
+               2,2,2,2,2,
+               2,2,2,2,2,
+               2,2,2,2,2,
+               2,2,2,2)
+
+ASE_pros = numeric()
+
+for(loop in 1 : nrow(ASE)){
+  
+  ASE_pros = rbind(ASE_pros,ifelse(ASE[loop,] == codeSocial, 1, 0))
+}
+
+search_own_study_1 = ASE_pros
+
+search_nondiag_study_1 = ASE_pros[,c(12,13,19,20)]
+
+ASE_pros = ASE_pros[,-c(12,13,19,20)]
+
+indiv_search = ASE_pros 
+
+table_perc_search_s1 = cbind(indiv_search,search_nondiag_study_1)
+table_perc_search_s1 = round(100-colMeans(table_perc_search_s1) * 100)
+
+ASE_pros_m = data.frame(100*rowMeans(ASE_pros))
+colnames(ASE_pros_m) = "pros"
+
+ASE_pros_m = unlist(ASE_pros_m)
+
+ASE_pros_m_pl = data.frame(ASE_pros_m)
+
+ggplot(ASE_pros_m_pl, aes(x=ASE_pros_m)) + geom_histogram() + 
+  labs(x = "Percentage search for option with higher self-outcome") 
+
+mean(ASE_pros_m)
+sd(ASE_pros_m)
+
+```
+
+## Correlation between SVO and ASE
+
+```{r}
+
+res = data.frame("ASE_pros_m"=ASE_pros_m,"SVO_part"=SVO_part)
+
+cor.test(res$SVO_part,res$ASE_pros_m,method = "spearman", alternative = "less")
+```
+
+```{r, fig.width=10,fig.height=7}
+#### final plot ####
+
+rect00 <- data.frame(x1=-90, x2=-67.5, y1=-Inf, y2=Inf)
+rect0 <- data.frame (x1=-67.5, x2=-22.5, y1=-Inf, y2=Inf)
+rect1 <- data.frame (x1=-22.5, x2=22.5, y1=-Inf, y2=Inf)
+rect2 <- data.frame (x1=22.5, x2=67.5, y1=-Inf, y2=Inf)
+rect3 <- data.frame (x1=67.5, x2=90, y1=-Inf, y2=Inf)
+
+scatterP<- ggplot(data = res, aes(x = SVO_part, y = ASE_pros_m)) + 
+  geom_segment(aes(x=-90,xend=90,y=50,yend=50), color = "black", size=.5)+
+  geom_segment(aes(x=-90,xend=-90,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-45,xend=-45,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=0,xend=0,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=45,xend=45,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=90,xend=90,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-90,xend=90,y=30,yend=30), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-90,xend=90,y=70,yend=70), color = "black", size=.3,linetype="dotted")+
+  geom_smooth(data = res, aes(x = SVO_part, y = ASE_pros_m),
+              method = "lm", se = FALSE, lwd = 1, inherit.aes = FALSE,
+              col ="grey")+
+  geom_count() +
+  scale_size_area(max_size=8) +
+  labs(x = "Social value orientation", 
+       y = "Percentage of search for option with higher self payoff",
+       color="Search bias")  +
+  scale_x_continuous(limits=c(-90,90),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) + 
+  scale_y_continuous(limits=c(-5,100),breaks=c(0,10,20,30,40,50,60,70,80,90,100)) + 
+  annotate(geom="text", x=-90, y=-5, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=-5, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=-5, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=-5, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=-5, label="altruistic",
+           color="black")+
+  geom_rect(data=rect00, mapping=aes(xmin =x1, 
+                                     xmax=x2, 
+                                     ymin=y1, 
+                                     ymax=y2),
+            fill="white", alpha=0.3, inherit.aes = FALSE) +
+  geom_rect(data=rect0, mapping=aes(xmin =x1, 
+                                    xmax=x2, 
+                                    ymin=y1, 
+                                    ymax=y2),
+            fill="grey", alpha=0.3, inherit.aes = FALSE) +
+  geom_rect(data=rect1, mapping=aes(xmin =x1, 
+                                    xmax=x2, 
+                                    ymin=y1, 
+                                    ymax=y2),
+            fill="white", alpha=0.3, inherit.aes = FALSE) +
+  geom_rect(data=rect2, mapping=aes(xmin =x1, 
+                                    xmax=x2, 
+                                    ymin=y1, 
+                                    ymax=y2),
+            fill="grey", alpha=0.3, inherit.aes = FALSE)+
+  geom_rect(data=rect3, mapping=aes(xmin =x1, 
+                                    xmax=x2, 
+                                    ymin=y1, 
+                                    ymax=y2),
+            fill="white", alpha=0.3, inherit.aes = FALSE)+
+  scale_color_manual(values = c("red", "chartreuse4")) +
+  theme_bw()
+
+pdf("study_1_main.pdf",pagecentre=T, width=10,height=7 ,paper = "special")
+
+ggMarginal(scatterP, type="densigram")
+dev.off()
+
+ggMarginal(scatterP, type="densigram")
+```
+
+## Multilevel regression models
+
+```{r}
+indiv_search = c(indiv_search)
+
+tasks = data.frame(tasks)
+
+SVO_tasks_2_single = 
+  data.frame(rowSums(cbind(tasks$self_1_1, tasks$self_1_2),na.rm=T),
+             tasks$other_1,
+             rowSums(cbind(tasks$self_2_1, tasks$self_2_2),na.rm=T),
+             tasks$other_2)
+
+colnames(SVO_tasks_2_single) = c("S_1_1","O_1","S_2_1","O_2")
+
+self_ratio =   (SVO_tasks_2_single$S_2_1 / SVO_tasks_2_single$S_1_1)
+other_ratio =  (SVO_tasks_2_single$O_1 / SVO_tasks_2_single$O_2)
+
+other_ratio[1] = NA
+
+incl = rep(1,24) 
+incl[c(12,13,19,20)] = 0
+
+self_ratio = self_ratio[incl==1]
+other_ratio = other_ratio[incl==1]
+
+dats_analy = data.frame("id"=rep(1:n_part_s1,20),
+                        "search"=indiv_search,
+                        "SVO"=rep(SVO_part,20),
+                        "Own" = rep(self_ratio,each=n_part_s1),
+                        "Other" = rep(other_ratio,each=n_part_s1)
+)
+
+
+mean_svo = mean(dats_analy$SVO)
+
+mean_self = mean(dats_analy$Own)
+sd_self = sd(dats_analy$Own)
+
+mean_other = mean(dats_analy$Other,na.rm=T)
+sd_other = sd(dats_analy$Other,na.rm=T)
+
+
+dats_analy$SVO = dats_analy$SVO - mean(dats_analy$SVO)
+dats_analy$Own = dats_analy$Own - mean(dats_analy$Own,na.rm=T)
+dats_analy$Other= dats_analy$Other - mean(dats_analy$Other,na.rm=T)
+
+mod = list()
+mod_expl = list()
+
+mod[1] = glmer(search ~ SVO  + (1|id),data=dats_analy,
+               family = "binomial")
+
+mod_expl[1] = glmer(search ~ SVO* Own +SVO*Other+(1|id),data=dats_analy,
+                    family = "binomial")
+
+```
+
+
+```{r, results = 'asis'}
+
+names_mod = c("Intercept","SVO")
+
+htmlreg(mod, custom.coef.names=names_mod,digits=3)
+
+```
+
+### Prepare plot model predictions
+
+```{r, fig.width=16, fig.height=20}
+
+mod = glmer(search ~ SVO + 
+              (1|id),data=dats_analy,
+            family = "binomial") 
+
+pred = ggpredict(mod,terms=c("SVO [all]"))
+
+pred$x = pred$x + mean_svo
+
+pl_1_s_1 = ggplot(pred, aes(x, predicted)) +  
+  geom_line()+
+  geom_ribbon(aes(ymin=conf.low, ymax=conf.high), alpha=0.15) +
+  scale_y_continuous(limits=c(0,1),
+                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(-90,91),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) +
+  geom_segment(aes(x=-90,xend=90,y=.5,yend=.5), color = "grey")+
+  geom_segment(aes(x=-90,xend=-90,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=-45,xend=-45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=0,xend=0,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=45,xend=45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=90,xend=90,y=.05,yend=1), color = "grey")+
+  annotate(geom="text", x=-90, y=.01, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=.01, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=.01, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=.01, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=.01, label="altruistic",
+           color="black")+ 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Social value orientation")
+
+##
+
+dats_analy$Own = dats_analy$Own - mean_self
+dats_analy$Other = dats_analy$Other - mean_other
+
+mod = glmer(search ~   SVO*Own + SVO*Other +
+              (1|id),data=dats_analy,
+            family = "binomial") 
+
+pred = ggpredict(mod,terms=c("SVO [all]","Own"))
+
+pred$x = pred$x + mean_svo
+
+levels(pred$group) = c(round(mean_self-sd_self,2),round(mean_self,2),round(mean_self+sd_self,2))
+
+pl_2 = ggplot(pred, aes(x, predicted)) +  
+  geom_line(aes(linetype=group)) + 
+  scale_y_continuous(limits=c(0,1),
+                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(-90,90),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) +
+  geom_segment(aes(x=-90,xend=90,y=.5,yend=.5), color = "grey")+
+  geom_segment(aes(x=-90,xend=-90,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=-45,xend=-45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=0,xend=0,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=45,xend=45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=90,xend=90,y=.05,yend=1), color = "grey")+
+  annotate(geom="text", x=-90, y=.01, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=.01, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=.01, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=.01, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=.01, label="altruistic",
+           color="black") +
+  guides(linetype=guide_legend("Ratio own payoff")) + 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Social value orientation")+ theme(legend.position="bottom")
+
+##
+
+pred = ggpredict(mod,terms=c("SVO [all]","Other"))
+
+pred$x = pred$x + mean_svo
+levels(pred$group) = c(round(mean_other-sd_other,2),round(mean_other,2),round(mean_other+sd_other,2))
+
+pl_3 = ggplot(pred, aes(x, predicted)) +  
+  geom_line(aes(linetype=group)) + 
+  scale_y_continuous(limits=c(0,1),
+                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(-90,90),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) +
+  geom_segment(aes(x=-90,xend=90,y=.5,yend=.5), color = "grey")+
+  geom_segment(aes(x=-90,xend=-90,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=-45,xend=-45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=0,xend=0,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=45,xend=45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=90,xend=90,y=.05,yend=1), color = "grey")+
+  annotate(geom="text", x=-90, y=.01, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=.01, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=.01, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=.01, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=.01, label="altruistic",
+           color="black") +
+  guides(linetype=guide_legend("Ratio other's payoff")) + 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Social value orientation")+ theme(legend.position="bottom") 
+
+
+##
+
+pred_val = seq(1-mean_self,3-mean_self,.1)
+pred_string = paste("Own [",paste(pred_val,collapse=","),"]",collapse="")
+
+pred_1 = ggpredict(mod,terms=pred_string)
+
+pred_1$x = pred_1$x + mean_self
+
+pred_val = seq(1-mean_other,3-mean_other,.1)
+pred_string = paste("Other [",paste(pred_val,collapse=","),"]",collapse="")
+
+pred_2 = ggpredict(mod,terms=pred_string)
+pred_2$x = pred_2$x + mean_other
+
+pl_data = data.frame(c(pred_1$x,pred_2$x),c(pred_1$predicted,pred_2$predicted),
+                     as.factor(c(rep("Own",length(pred_1$x)),rep("Other",length(pred_2$x))))
+)
+
+names(pl_data) = c("x","predicted","group")
+
+pl_4 = ggplot(pl_data, aes(x, predicted)) +  
+  geom_line(aes(linetype=group)) + 
+  scale_y_continuous(limits=c(0,1),
+                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(1,3.1))+
+  geom_segment(aes(x=1,xend=3,y=.5,yend=.5), color = "grey")+
+  guides(linetype=guide_legend("Type of payoff")) + 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Ratio payoff") + theme(legend.position="bottom") +
+  scale_linetype(labels = c("Other's", "Own"))
+
+
+pl_main_s1 =pl_4
+pl_self_s1 = pl_2
+pl_other_s1 = pl_3
+
+```
+
+
+# Study 2
+
+## Read in data
+
+```{r}
+
+dats_s2_1 =  read_csv("data_study_2_session_1.csv")
+dats_s2_2 = read_csv("data_study_2_session_2.csv")
+
+```
+
+## Demographics
+
+### Number of participants
+
+```{r}
+
+n_part_s2 = nrow(dats_s2_1)
+n_part_s2
+
+```
+
+### Age
+
+```{r}
+dats_s2_1$Age = ifelse(dats_s2_1$Age == 999, NA, dats_s2_1$Age)
+
+age = dats_s2_1$Age
+mean(age, na.rm=T)
+sd(age, na.rm=T)
+```
+
+### Gender
+
+```{r}
+
+dats_s2_1$Sex = ifelse(dats_s2_1$Sex == "männlich", "male",dats_s2_1$Sex)
+dats_s2_1$Sex = ifelse(dats_s2_1$Sex == "weiblich", "female",dats_s2_1$Sex)
+dats_s2_1$Sex = ifelse(dats_s2_1$Sex == "divers", "diverse",dats_s2_1$Sex)
+dats_s2_1$Sex = ifelse(dats_s2_1$Sex == "möchte ich nicht angeben", "no answer",dats_s2_1$Sex)
+
+gender = dats_s2_1$Sex
+table(gender)
+
+```
+
+
+### Time difference in days between sessions
+
+```{r}
+
+start_date =  as.numeric(str_sub(dats_s2_1$StartDate,9,10))
+end_date = as.numeric( str_sub(dats_s2_2$EndDate,9,10))
+end_date = ifelse(end_date<16,31+end_date,end_date)
+
+days = end_date - start_date 
+
+table(days)
+
+```
+
+
+## Session 1
+
+
+```{r}
+order_pres = dats_s2_1 %>% select(
+  contains("Trial"))
+
+order_pres = matrix(as.numeric(unlist(order_pres)),
+                    ncol = ncol(order_pres))
+
+order_options = dats_s2_1 %>% select(
+  contains("Pres"))
+
+order_options = order_options[,2:ncol(order_options)]
+
+order_options = matrix(as.numeric(unlist(order_options)),
+                       ncol = ncol(order_options))
+
+choice = dats_s2_1 %>% select(
+  contains("SVO_choice"))
+choice = ifelse(choice == "Linke Option",1,2)
+
+for(loop_part in 1 : nrow(dats_s2_1)){
+  for(loop_trial in 1 : 24){
+    
+    act_part = order_options[loop_part,order_pres[loop_part,]]
+    
+    if(act_part[loop_trial] == 0){
+      
+      choice[loop_part,loop_trial] = 
+        ifelse(choice[loop_part,loop_trial] == 2,1,2)
+    }
+  }
+}
+
+SVO_choice = choice
+```
+
+### Money first session
+
+```{r}
+random_SVO_1 = numeric()
+
+for(loop_part in 1 : nrow(SVO_choice)){
+  
+  pick_task = sample(1:24,1)
+  
+  act_choice_part = choice[loop_part,pick_task]
+  
+  ind_ch = c(1,2) + (act_choice_part-1) * 2
+  
+  random_SVO_1 = rbind(random_SVO_1,
+                       unlist(tasks_svo[pick_task,ind_ch]))
+  
+}
+
+random_SVO_1 = data.frame(random_SVO_1)
+colnames(random_SVO_1) = c("Own","Other")
+
+others = sample(1:nrow(dats_s2_1),nrow(dats_s2_1)/2)
+
+others = cbind(others,sample((1:nrow(dats_s2_1))[-others]))
+
+others = rbind(others,others[,2:1])
+others = others[order(others[,1]),]
+colnames(others) = c("key","target")
+others = data.frame(others)
+
+total_money_1 = numeric()
+
+for(loop_part in 1 : nrow(dats_s2_1)){
+  
+  total_money_1 = c(total_money_1,
+                    
+                    random_SVO_1$Own[loop_part] + 
+                      random_SVO_1$Other[others$target[loop_part]])
+  
+}
+
+```
+
+
+### Angle social value orientation
+
+```{r}
+
+SVO_part = numeric()
+SVO_tasks_1 = data.frame(tasks_svo)
+colnames(SVO_tasks_1) = c("S_1",	"O_1",	"S_2",	"O_2")
+
+SVO_tasks_1 = matrix(unlist(SVO_tasks_1),ncol = ncol(SVO_tasks_1))
+
+for(loopP in 1 : nrow(dats_s2_1)){
+  
+  tasks_svo_p = numeric()
+  
+  for(loopT in 1 : 24){
+    
+    if(SVO_choice[loopP,loopT] == 1){
+      pickPart =   c(1,2)
+    } else {
+      pickPart = c(3,4)
+    }
+    
+    tasks_svo_p = rbind(tasks_svo_p,
+                        SVO_tasks_1[loopT,pickPart])
+    
+  }
+  
+  self_other_mean= colSums(tasks_svo_p)
+  
+  SVO_part = c(SVO_part,
+               atan(self_other_mean[2]/self_other_mean[1])*180/pi)
+}
+
+
+SVO_part_pl = data.frame(SVO_part)
+
+ggplot(SVO_part_pl, aes(x=SVO_part)) + geom_histogram() + 
+  labs(x = "Social value orientation") +
+  scale_x_continuous(breaks = seq(-90, 90, by=10))
+
+mean(SVO_part)
+sd(SVO_part)
+
+```
+
+## Session 2
+
+### Tasks with concealed information
+
+```{r}
+SVO_tasks_2 = rbind(
+  c(1.16,1.74,0.8,1.5,1.5,0),
+  c(1.94,1.3,1.14,2.33,1.01,0.34),
+  c(1.53,2.74,2.17,2.14,2.23,1.37),
+  c(0.08,2.6,1.63,0.19,2.54,1.23),
+  c(2.22,0.74,2.03,2.79,0.27,1.63),
+  c(1.37,2.25,2.57,1.5,2.17,2.17),
+  c(3.65,0.17,2.97,3.81,0.08,2.57),
+  c(4.51,0.14,3.64,4.6,0.14,3.24),
+  c(0.18,2.42,1.5,0.33,2.57,0.8),
+  c(0.91,2.03,1.84,1.03,2.21,1.14),
+  c(2.35,1.62,2.87,4.23,0.04,2.17),
+  c(1.19,3.89,3.99,0.99,3.88,3.25),
+  c(2.23,2.96,4.76,1.35,3.51,3.6),
+  c(3.3,0.27,2.92,3.55,0.08,2.57),
+  c(3.56,0.31,3.32,3.84,0.2,2.97),
+  c(2.07,0.2,2,2.19,0.16,1.82),
+  c(0.86,1.34,2.26,1.04,1.33,1.19),
+  c(1.3,1.32,2.44,2.8,0.14,1.84),
+  c(3.4,0.41,3.47,3.26,0.71,2.87),
+  c(0.93,2.35,2.15,0.63,2.72,1.7),
+  c(3.51,2.19,5.36,5.75,0.11,4.76),
+  c(2.55,0.97,3.22,3.26,0.21,2.92),
+  c(2.3,1.28,3.62,3.41,0.22,3.32),
+  c(3.9,0.75,4.29,4.4,0.28,3.99)
+)
+
+
+SVO_tasks_2 = data.frame(SVO_tasks_2)
+
+colnames(SVO_tasks_2) = c("S_1_1",	"S_1_2"	,"O_1",	"S_2_1"	,"S_2_2",	"O_2")
+
+tasks_svo_table_3 = SVO_tasks_2
+```
+
+### Total money
+
+
+```{r}
+
+SVO_tasks_2
+
+SVO_tasks_2_single = SVO_tasks_2
+
+SVO_tasks_2 = data.frame(
+  
+  SVO_tasks_2$S_1_1 + SVO_tasks_2$S_1_2,SVO_tasks_2$O_1,
+  SVO_tasks_2$S_2_1+SVO_tasks_2$S_2_2,SVO_tasks_2$O_2)
+
+colnames(SVO_tasks_2) = c("S_1","O_1","S_2","O_2")
+
+t.test(SVO_tasks_2$S_1,SVO_tasks_2$S_2,var.equal=T)
+t.test(SVO_tasks_2$O_1,SVO_tasks_2$O_2,var.equal = T)
+
+###
+
+random_SVO_2 = numeric()
+
+for(loop_part in 1 : nrow(dats_s2_2)){
+  
+  pick_task = sample(1:24,1)
+  
+  act_choice_part = choice[loop_part,pick_task]
+  
+  ind_ch = c(1,2) + (act_choice_part-1) * 2
+  
+  random_SVO_2 = rbind(random_SVO_2,
+                       unlist(SVO_tasks_2[pick_task,ind_ch]))
+  
+}
+
+random_SVO_2 = data.frame(random_SVO_2)
+colnames(random_SVO_2) = c("Own","Other")
+
+others = sample(1:nrow(dats_s2_2),nrow(dats_s2_2)/2)
+
+others = cbind(others,sample((1:nrow(dats_s2_2))[-others]))
+
+others = rbind(others,others[,2:1])
+others = others[order(others[,1]),]
+colnames(others) = c("key","target")
+others = data.frame(others)
+
+total_money_2 = numeric()
+
+for(loop_part in 1 : nrow(dats_s2_2)){
+  
+  total_money_2 = c(total_money_2,
+                    
+                    random_SVO_2$Own[loop_part] + 
+                      random_SVO_2$Other[others$target[loop_part]])
+  
+}
+
+total_money = 3 + total_money_1 + total_money_2
+total_money = ifelse(total_money<3,3,total_money)
+
+mean(total_money)
+sd(total_money)
+
+total_money = data.frame(total_money)
+
+ggplot(total_money, aes(x=total_money)) + geom_histogram() + 
+  labs(x = "Earned money in Euro") +
+  scale_y_continuous(breaks = seq(0, 20, by=1)) +
+  scale_x_continuous(breaks = seq(0, 20, by=1))
+
+
+```
+
+
+### Attraction Search Effect
+
+```{r}
+
+order_pres = dats_s2_2 %>% select(
+  contains("Trial"))
+order_pres = matrix(as.numeric(unlist(order_pres)),
+                    ncol = ncol(order_pres))
+
+order_options = dats_s2_2 %>% select(
+  contains("Pres"))
+
+order_options = order_options[,1:24]
+
+order_options = matrix(as.numeric(unlist(order_options)),
+                       ncol = ncol(order_options))
+
+choice = dats_s2_2 %>% select(
+  contains("SVO_choice"))
+choice = ifelse(choice == "Linke Option",1,2)
+
+search = dats_s2_2  %>% select(
+  contains("search") & !contains("Time") &  !contains("example")
+)
+
+search = ifelse(search == "Verdeckter Betrag der linken Option",1,2)
+
+for(loop_part in 1 : nrow(dats_s2_2)){
+  for(loop_trial in 1 :24){
+    
+    act_part = order_options[loop_part,][order_pres[loop_part,]]
+    
+    if(act_part[loop_trial] == 0){
+      
+      choice[loop_part,loop_trial] = 
+        ifelse(choice[loop_part,loop_trial] == 2,1,2)
+      
+      search[loop_part,loop_trial] = 
+        ifelse(search[loop_part,loop_trial] == 2,1,2)
+      
+    }
+  }
+}
+
+incl = (cbind(SVO_tasks_2_single$S_1_1 > SVO_tasks_2_single$S_2_1,
+              SVO_tasks_2_single$O_1 > SVO_tasks_2_single$O_2))
+
+incl = ifelse(rowSums(incl)==1,1,0)
+
+search_nondiag_study_2 = ifelse(search == 2,1,0)
+search_nondiag_study_2 = search_nondiag_study_2[,incl==0]
+
+search = search[,incl == 1]
+indiv_search = ifelse(search == 2,1,0)
+
+score_indiv_search = rowSums(indiv_search)
+
+score_indiv_search_pl = data.frame(100*score_indiv_search/20)
+
+ggplot(score_indiv_search_pl, aes(x=X100...score_indiv_search.20)) + geom_histogram() + 
+  labs(x = "Percentage search for option with higher self-outcome") 
+
+mean(unlist(score_indiv_search_pl))
+sd(unlist(score_indiv_search_pl))
+
+table_perc_search_s2 = cbind(indiv_search,search_nondiag_study_2)
+table_perc_search_s2 = round(100-colMeans(table_perc_search_s2) * 100)
+
+```
+
+## Correlation between ASE and SVO
+
+```{r}
+cor.test(SVO_part,score_indiv_search,method="spearman",alternative="less")
+cor.test(SVO_part,score_indiv_search)
+```
+
+### Correlation between SVO ring measure and SVO slider from Decision Lab Cologne
+
+```{r}
+SVO_dlc = read.csv("SVO_dlc.csv")
+
+date_slider = SVO_dlc$Date
+date_slider = str_sub(date_slider, 1, 10)
+
+year =  as.numeric(str_sub(date_slider, 1, 4))
+month = as.numeric( str_sub(date_slider, 6,7))
+
+date_slider = data.frame(year,month)
+date_slider = date_slider[order(date_slider$year,date_slider$month),]
+
+date_slider = table(date_slider$year,date_slider$month)
+date_slider =cbind(date_slider,rowSums(date_slider ),rowSums(date_slider )/sum(date_slider))
+
+sum((7 - c(1:8,10:12)) * date_slider[3,1:11] +
+(7 + c(12:10,8:1)) * date_slider[2,1:11] +
+(7 +12 + c(12:10,8:1)) * date_slider[3,1:11]) /n_part_s2
+
+cor.test(SVO_dlc$SVSangle,SVO_part)
+
+SVOscales = data.frame(SVO_dlc$SVSangle,SVO_part)
+
+names(SVOscales) = c("SVO_slider","SVO_ring")
+
+ggplot(SVOscales,aes(x=SVO_ring,y=SVO_slider)) +  geom_count() +
+  labs(x = "SVO ring measure", 
+       y = "SVO slider")  +
+  geom_smooth(method = "lm")
+
+```
+
+### Correlation based on SVO slider from Decision Lab Cologne
+
+```{r}
+cor.test(SVO_dlc$SVSangle,score_indiv_search,method="spearman",alternative="less")
+cor.test(SVO_dlc$SVSangle,score_indiv_search,method="pearson",alternative="less")
+```
+
+### Correlation based on average between SVO ring measure form session 1 and SVO slider from Decision Lab Cologne
+
+```{r}
+SVO_average = ((SVO_part + SVO_dlc$SVSangle)/2)
+
+cor.test(SVO_average,score_indiv_search,method="spearman",alternative="less")
+cor.test(SVO_average,score_indiv_search,method="pearson",alternative="less")
+
+```
+
+## Condition preference assessment
+
+```{r}
+
+# 1 = with preference assessment befor search, 0 = without
+
+cond = dats_s2_2$preference
+cond = as.numeric(cond)
+
+table(cond)
+```
+
+### Correlation per condition
+
+```{r}
+cor.test(SVO_part[cond==1],score_indiv_search[cond==1],method="spearman",alternative="less")
+cor.test(SVO_part[cond==0],score_indiv_search[cond==0],method="spearman",alternative="less")
+```
+
+#### Bootstrapped confidence intervals for difference in correlations
+
+```{r}
+diff_rho = rep(NA, 10000)
+
+for(loop_bootstrap in 1 : 10000){
+  
+  SVO_part_bootstrap_group_with_assessment = SVO_part[cond==1]
+  SVO_part_bootstrap_group_without_assessment = SVO_part[cond==0]
+  ASE_bootstrap_group_with_assessment = score_indiv_search[cond==1]
+  ASE_bootstrap_group_without_assessment = score_indiv_search[cond==0]
+  
+  pick_with_assessment = sample(1:length(SVO_part_bootstrap_group_with_assessment),rep=T)
+  pick_without_assessment = sample(1:length(SVO_part_bootstrap_group_without_assessment),rep=T)
+  
+  diff_rho[loop_bootstrap] = 
+    cor(SVO_part_bootstrap_group_with_assessment[pick_with_assessment],
+        ASE_bootstrap_group_with_assessment[pick_with_assessment],method="spearman")-
+    cor(SVO_part_bootstrap_group_without_assessment[pick_without_assessment] ,
+        ASE_bootstrap_group_without_assessment[pick_without_assessment],method="spearman")
+  
+  
+}
+
+diff_rho = sort(diff_rho)
+
+diff_rho[250]
+diff_rho[9750]
+```
+
+## Plot Correlation between SVO and ASE
+
+```{r}
+ASE_pros_m = c(100*score_indiv_search/20)
+res_fin = data.frame("ASE_pros_m"=ASE_pros_m,"SVO_part"=SVO_part,
+                     "cond"=cond)
+
+res_fin$cond = as.factor(res_fin$cond)
+levels(res_fin$cond) = c("No","Yes")
+
+rect00 <- data.frame(x1=-90, x2=-67.5, y1=-Inf, y2=Inf)
+rect0 <- data.frame (x1=-67.5, x2=-22.5, y1=-Inf, y2=Inf)
+rect1 <- data.frame (x1=-22.5, x2=22.5, y1=-Inf, y2=Inf)
+rect2 <- data.frame (x1=22.5, x2=67.5, y1=-Inf, y2=Inf)
+rect3 <- data.frame (x1=67.5, x2=90, y1=-Inf, y2=Inf)
+
+scatterP<- ggplot(data = res_fin, aes(x = SVO_part, y = ASE_pros_m)) + 
+  geom_segment(aes(x=-90,xend=90,y=50,yend=50), color = "black", size=.5)+
+  geom_segment(aes(x=-90,xend=-90,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-45,xend=-45,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=0,xend=0,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=45,xend=45,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=90,xend=90,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-90,xend=90,y=30,yend=30), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-90,xend=90,y=70,yend=70), color = "black", size=.3,linetype="dotted")+
+  geom_smooth(data = res_fin, aes(x = SVO_part, y = ASE_pros_m),
+              method = "lm", se = FALSE, lwd = 1, inherit.aes = FALSE,
+              col ="grey")+
+  geom_count() +
+  scale_size_area(max_size=8) +
+  labs(x = "Social value orientation", 
+       y = "Percentage of search of option with higher self payoff",
+       color="Search bias")  +
+  scale_x_continuous(limits=c(-90,90),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) + 
+  scale_y_continuous(limits=c(-5,100),breaks=c(0,10,20,30,40,50,60,70,80,90,100)) + 
+  annotate(geom="text", x=-90, y=-5, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=-5, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=-5, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=-5, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=-5, label="altruistic",
+           color="black")+
+  geom_rect(data=rect00, mapping=aes(xmin =x1, 
+                                     xmax=x2, 
+                                     ymin=y1, 
+                                     ymax=y2),
+            fill="white", alpha=0.3, inherit.aes = FALSE) +
+  geom_rect(data=rect0, mapping=aes(xmin =x1, 
+                                    xmax=x2, 
+                                    ymin=y1, 
+                                    ymax=y2),
+            fill="grey", alpha=0.3, inherit.aes = FALSE) +
+  geom_rect(data=rect1, mapping=aes(xmin =x1, 
+                                    xmax=x2, 
+                                    ymin=y1, 
+                                    ymax=y2),
+            fill="white", alpha=0.3, inherit.aes = FALSE) +
+  geom_rect(data=rect2, mapping=aes(xmin =x1, 
+                                    xmax=x2, 
+                                    ymin=y1, 
+                                    ymax=y2),
+            fill="grey", alpha=0.3, inherit.aes = FALSE)+
+  geom_rect(data=rect3, mapping=aes(xmin =x1, 
+                                    xmax=x2, 
+                                    ymin=y1, 
+                                    ymax=y2),
+            fill="white", alpha=0.3, inherit.aes = FALSE)+
+  theme_bw()
+
+
+scatterP_g<- ggplot(data = res_fin, aes(x = SVO_part, y = ASE_pros_m, col = cond)) + 
+  geom_smooth(data = res_fin, aes(x = SVO_part, y = ASE_pros_m, col = cond),
+              method = "lm", se = FALSE, lwd = 1)+
+  geom_count() +
+  scale_size_area(max_size=8) +
+  labs(x = "Social value orientation", 
+       y = "Percentage of search of option with higher self payoff",
+       color="Preference\nassessment")  +
+  scale_x_continuous(limits=c(-24,67.5),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) + 
+  scale_y_continuous(limits=c(-5,100),breaks=c(0,10,20,30,40,50,60,70,80,90,100)) + 
+  annotate(geom="text", x=-90, y=-5, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=-5, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=-5, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=-5, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=-5, label="altruistic",
+           color="black")+
+  scale_color_manual(values = c("grey75", "black")) +
+  theme_bw()
+
+pdf("study_2_main.pdf",pagecentre=T, width=10,height=7 ,paper = "special")
+
+ggMarginal(scatterP, type="densigram")
+dev.off()
+
+pdf("study_2_sub.pdf",pagecentre=T, width=10,height=7 ,paper = "special")
+
+ggMarginal(scatterP_g, type="boxplot", groupColour=T,size=8)
+
+dev.off()
+```
+
+### Overall plot
+
+```{r, fig.width=10,fig.height=7}
+ggMarginal(scatterP, type="densigram")
+
+
+```
+
+### Plot separated by assessment condition
+
+```{r, fig.width=10,fig.height=7}
+
+
+ggMarginal(scatterP_g, type="boxplot", groupColour=T,size=8)
+```
+
+## Multilevel regression models
+
+```{r}
+indiv_search = c(indiv_search)
+
+self_ratio =   SVO_tasks_2_single$S_2_1 / SVO_tasks_2_single$S_1_1
+other_ratio =  SVO_tasks_2_single$O_1 / SVO_tasks_2_single$O_2
+other_ratio[1] = NA
+
+self_ratio = self_ratio[incl==1]
+other_ratio = other_ratio[incl==1]
+
+dats_analy = data.frame("id"=rep(1:n_part_s2,20),
+                        "search"=indiv_search,
+                        "SVO"=rep(SVO_part,20),
+                        "Pref" = rep(cond,20),
+                        "Own" = rep(self_ratio,each=n_part_s2),
+                        "Other" = rep(other_ratio,each=n_part_s2)
+)
+
+
+dats_analy$Pref = as.factor(dats_analy$Pref)
+levels(dats_analy$Pref) = c("without","with")
+contrasts(dats_analy$Pref) = contr.sum(2)
+contrasts(dats_analy$Pref) = contrasts(dats_analy$Pref)[2:1]
+
+dats_analy_gg = dats_analy
+
+dats_analy$SVO = dats_analy$SVO - mean(dats_analy$SVO)
+dats_analy$Own = dats_analy$Own - mean(dats_analy$Own,na.rm=T)
+dats_analy$Other= dats_analy$Other - mean(dats_analy$Other,na.rm=T)
+
+
+mod = list()
+
+mod[1] = glmer(search ~ SVO  + (1|id),data=dats_analy,
+               family = "binomial")
+
+mod[2] = glmer(search ~ SVO * Pref + (1|id),data=dats_analy,
+               family = "binomial")
+
+mod_expl[2] = glmer(search ~  SVO*Own +Other*SVO+(1|id),data=dats_analy,
+                    family = "binomial")
+```
+
+
+```{r, results = 'asis'}
+
+names_mod = c("Intercept","SVO", "Pref. assesm.", "SVO x Pref. assesm.")
+
+htmlreg(mod, custom.coef.names=names_mod,digits=3)
+
+
+```
+
+```{r}
+texreg(mod, custom.coef.names=names_mod,digits=3)
+```
+
+
+### Prepare plot model predictions
+
+```{r, fig.width=16, fig.height=20}
+mod = glmer(search ~ SVO + 
+              (1|id),data=dats_analy_gg,
+            family = "binomial") 
+
+pred = ggpredict(mod,terms=c("SVO"))
+
+pl_1 = ggplot(pred, aes(x, predicted)) +  
+  geom_line()+
+  geom_ribbon(aes(ymin=conf.low, ymax=conf.high), alpha=0.15) +
+  scale_y_continuous(limits=c(0,1),
+                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(-90,90),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) +
+  geom_segment(aes(x=-90,xend=90,y=.5,yend=.5), color = "grey")+
+  geom_segment(aes(x=-90,xend=-90,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=-45,xend=-45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=0,xend=0,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=45,xend=45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=90,xend=90,y=.05,yend=1), color = "grey")+
+  annotate(geom="text", x=-90, y=.01, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=.01, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=.01, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=.01, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=.01, label="altruistic",
+           color="black")+ 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Social value orientation")
+
+##
+
+levels(dats_analy_gg$Pref) = c("no","yes")
+
+mean_svo = mean(dats_analy_gg$SVO)
+
+dats_analy_gg$SVO = dats_analy_gg$SVO - mean_svo
+
+mod = glmer(search ~ SVO*Pref + 
+              (1|id),data=dats_analy_gg,
+            family = "binomial") 
+
+pred = ggpredict(mod,terms=c("SVO","Pref"))
+
+pred$x  = pred$x + mean_svo
+
+pl_2 = ggplot(pred, aes(x, predicted)) + 
+  geom_line(aes(linetype=group))+ scale_y_continuous(limits=c(0,1),
+                                                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(-90,90),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) +
+  geom_segment(aes(x=-90,xend=90,y=.5,yend=.5), color = "grey")+
+  geom_segment(aes(x=-90,xend=-90,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=-45,xend=-45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=0,xend=0,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=45,xend=45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=90,xend=90,y=.05,yend=1), color = "grey")+
+  annotate(geom="text", x=-90, y=.01, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=.01, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=.01, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=.01, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=.01, label="altruistic",
+           color="black") +
+  guides(linetype=guide_legend("Preference assessment"))+ 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Social value orientation")+ 
+  theme(legend.position="bottom") 
+
+##
+
+mean_self = mean(dats_analy_gg$Own)
+sd_self = sd(dats_analy_gg$Own)
+dats_analy_gg$Own = dats_analy_gg$Own - mean_self
+
+mean_other = mean(dats_analy_gg$Other,na.rm=T)
+sd_other = sd(dats_analy_gg$Other,na.rm=T)
+dats_analy_gg$Other = dats_analy_gg$Other - mean_other
+
+mod = glmer(search ~    SVO*Own + SVO*Other +
+              (1|id),data=dats_analy_gg,
+            family = "binomial") 
+
+pred = ggpredict(mod,terms=c("SVO","Own"))
+
+pred$x = pred$x + mean_svo
+
+levels(pred$group) = c(round(mean_self-sd_self,2),round(mean_self,2),round(mean_self+sd_self,2))
+
+pl_3 = ggplot(pred, aes(x, predicted)) +  
+  geom_line(aes(linetype=group)) + 
+  scale_y_continuous(limits=c(0,1),
+                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(-90,90),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) +
+  geom_segment(aes(x=-90,xend=90,y=.5,yend=.5), color = "grey")+
+  geom_segment(aes(x=-90,xend=-90,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=-45,xend=-45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=0,xend=0,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=45,xend=45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=90,xend=90,y=.05,yend=1), color = "grey")+
+  annotate(geom="text", x=-90, y=.01, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=.01, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=.01, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=.01, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=.01, label="altruistic",
+           color="black") +
+  guides(linetype=guide_legend("Ratio own payoff")) + 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Social value orientation")+ theme(legend.position="bottom")
+
+##
+
+pred = ggpredict(mod,terms=c("SVO","Other"))
+
+pred$x = pred$x + mean_svo
+levels(pred$group) = c(round(mean_other-sd_other,2),round(mean_other,2),round(mean_other+sd_other,2))
+
+
+pl_4 = ggplot(pred, aes(x, predicted)) +  
+  geom_line(aes(linetype=group)) + 
+  scale_y_continuous(limits=c(0,1),
+                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(-90,90),breaks=c(-90,-67.5,-45,-22.5,0,22.5,45,67.5,90)) +
+  geom_segment(aes(x=-90,xend=90,y=.5,yend=.5), color = "grey")+
+  geom_segment(aes(x=-90,xend=-90,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=-45,xend=-45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=0,xend=0,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=45,xend=45,y=.05,yend=1), color = "grey")+
+  geom_segment(aes(x=90,xend=90,y=.05,yend=1), color = "grey")+
+  annotate(geom="text", x=-90, y=.01, label="sadistic",
+           color="black")+
+  annotate(geom="text", x=-45, y=.01, label="competitive",
+           color="black")+
+  annotate(geom="text", x=45, y=.01, label="cooperative",
+           color="black")+
+  annotate(geom="text", x=0, y=.01, label="individualistic",
+           color="black")+
+  annotate(geom="text", x=90, y=.01, label="altruistic",
+           color="black") +
+  guides(linetype=guide_legend("Ratio other's payoff")) + 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Social value orientation")+ theme(legend.position="bottom")+ 
+  theme(legend.position="bottom")
+
+##
+
+pred_val = seq(1-mean_self,3-mean_self,.1)
+pred_string = paste("Own [",paste(pred_val,collapse=","),"]",collapse="")
+
+pred_1 = ggpredict(mod,terms=pred_string)
+
+pred_1$x = pred_1$x + mean_self
+
+pred_val = seq(1-mean_other,3-mean_other,.1)
+pred_string = paste("Other [",paste(pred_val,collapse=","),"]",collapse="")
+
+pred_2 = ggpredict(mod,terms=pred_string)
+pred_2$x = pred_2$x + mean_other
+
+pl_data = data.frame(c(pred_1$x,pred_2$x),c(pred_1$predicted,pred_2$predicted),
+                     as.factor(c(rep("Own",length(pred_1$x)),rep("Other",length(pred_2$x))))
+)
+
+names(pl_data) = c("x","predicted","group")
+
+pl_5 = ggplot(pl_data, aes(x, predicted)) +  
+  geom_line(aes(linetype=group)) + 
+  scale_y_continuous(limits=c(0,1),
+                     breaks=c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1))+
+  scale_x_continuous(limits=c(1,3.1))+
+  geom_segment(aes(x=1,xend=3,y=.5,yend=.5), color = "grey")+
+  guides(linetype=guide_legend("Type of payoff")) + 
+  ylab("Likelihood of search for option with higher own payoff") +
+  xlab("Ratio payoff") + theme(legend.position="bottom") +
+  scale_linetype(labels = c("Other's", "Own"))
+
+```
+
+## Choice in session 2
+
+```{r}
+
+choice_s_2 = choice[,-c(12,13,19,20)]
+
+round(table(c(choice_s_2),c(search)) / sum(table(c(choice_s_2),c(search)) ) * 100)
+
+```
+
+
+
+
+## Reaction time
+
+```{r}
+
+rt = dats_s2_2  %>% select(
+  contains("Time_search_Page Submit")
+    )
+
+order_items = dats_s2_2 %>% select(contains("Trial_"))
+
+rt = rt[,-c(12,13,19,20)]
+
+order_items = order_items[,-c(12,13,19,20)]
+dats_analy = data.frame(dats_analy,"rt"=unlist(rt),"order" = unlist(order_items))
+
+
+mod_rt = lmer(rt ~ SVO* Own * Other + (1|id)+(1|order),data=dats_analy)
+
+
+```
+
+```{r, results = 'asis'}
+
+htmlreg(mod_rt,digits=3)
+
+```
+
+
+# Plot target effects from both studies
+
+```{r, fig.width=16, fig.height=10}
+
+figure <- ggarrange(pl_1_s_1,pl_1, pl_2,
+                    labels = c("A", "B","C"),
+                    ncol = 2, nrow = 2)
+figure
+
+pdf("studies_1_2_model.pdf",pagecentre=T, width=14,height=11 ,paper = "special")
+
+figure
+
+dev.off()
+
+```
+
+
+
+# Appendix A: Items
+
+```{r}
+tasks_svo_table_1 =  cbind(1:24,tasks_svo)
+tasks_svo_table_2 = numeric()
+
+for(loop in 1:24){
+  
+  conc = tasks[loop,]
+  open = tasks_compl[loop,]
+  open = open[is.na(conc) == T]
+  
+  conc = conc[is.na(conc) == F]
+  conc = as.character(conc)
+  open = paste("(",open,")",sep="")
+  
+  
+  tasks_svo_table_2 = 
+    rbind(tasks_svo_table_2,
+          c(conc[1],open[1],conc[2:3],open[2],conc[4]))
+  
+}
+
+tasks_svo_table_3 = matrix(as.character(unlist(tasks_svo_table_3)),
+                           ncol=ncol(tasks_svo_table_3))
+
+tasks_svo_table_3[,2] = paste("(",tasks_svo_table_3[,2],")",sep="")
+tasks_svo_table_3[,5] = paste("(",tasks_svo_table_3[,5],")",sep="")
+
+
+tasks_svo_table = cbind(rbind(tasks_svo_table_1[incl==1,],tasks_svo_table_1[incl==0,]),
+                        rbind(tasks_svo_table_2[incl==1,],tasks_svo_table_2[incl==0,]),
+                        table_perc_search_s1,
+                        rbind(tasks_svo_table_3[incl==1,],tasks_svo_table_3[incl==0,]),
+                        table_perc_search_s2) ##***
+
+tasks_svo_table[,1] = 1:24
+
+cor.test(table_perc_search_s1[1:20],table_perc_search_s2[1:20])
+plot(table_perc_search_s1[1:20],table_perc_search_s2[1:20])
+
+
+rownames(tasks_svo_table) <- NULL
+
+kbl(tasks_svo_table,
+    format = "latex",
+    booktabs = TRUE,
+    col.names = c("Item","Own", "Other's", "Own", "Other's", "Own 1", "Own 2","Other's", "Own 1", "Own 2", "Other's","","Own 1", "Own 2","Other's", "Own 1", "Own 2", "Other's",""),
+    align = c("l", "c", "c", "c","c","c", "c","c", "c","c","c","c","c", "c", "c","c","c","c","c"),
+    caption="."
+    
+    
+) %>% 
+  add_header_above(c(" ", "Payoff Option 1" = 2, "Payoff Option 2" = 2,"Payoff Option 1" = 3, "Payoff Option 2" = 3,"% Opt 1" = 1,"Payoff Option 1" = 3, "Payoff Option 2" = 3,"% Opt 1" = 1)) %>% 
+  add_header_above(c(" ", "SVO Ring Measure" = 4,"ASE Study 1"=7,"ASE Study 2"=7))
+```
+
+
+```{r,  results = 'asis'}
+
+
+kbl(tasks_svo_table,
+    format = "html",
+    
+    col.names = c("Item","Own", "Other's", "Own", "Other's", "Own 1", "Own 2","Other's", "Own 1", "Own 2", "Other's","","Own 1", "Own 2","Other's", "Own 1", "Own 2", "Other's",""),
+    align = c("l", "c", "c", "c","c","c", "c","c", "c","c","c","c","c", "c", "c","c","c","c","c"),
+    caption="."
+    
+    
+) %>% 
+  add_header_above(c(" ", "Payoff Option 1" = 2, "Payoff Option 2" = 2,"Payoff Option 1" = 3, "Payoff Option 2" = 3,"% Opt 1" = 1,"Payoff Option 1" = 3, "Payoff Option 2" = 3,"% Opt 1" = 1)) %>% 
+  add_header_above(c(" ", "SVO Ring Measure" = 4,"ASE Study 1"=7,"ASE Study 2"=7)) 
+
+```
+
+# Appendix B: Properties of items
+
+```{r, fig.width=14,fig.height=16}
+
+figure <- ggarrange(pl_main_s1,pl_5,pl_self_s1,pl_3,pl_other_s1, pl_4,
+                    labels = c("A", "B","C","D","E","F"),
+                    ncol = 2, nrow = 3)
+
+figure
+
+pdf("studies_1_2_ratios_model.pdf",pagecentre=T, width=14,height=16 ,paper = "special")
+
+figure
+
+dev.off()
+```
+
+
+```{r, results = 'asis'}
+
+names_mod = c("Intercept","SVO","R[own]: Ratio own payoffs","R[other's]: Ratio other's payoffs",
+              "SVO x R[own]", "SVO x R[other's]")
+
+htmlreg(mod_expl, custom.coef.names=names_mod,
+        custom.model.names = c("Study 1", "Study 2"),digits=3,
+        include.loglik = F,
+        include.aic=F,
+        include.bic=F
+)
+
+```
+
+```{r}
+texreg(mod_expl, custom.coef.names=names_mod,
+       custom.model.names = c("Study 1", "Study 2"),digits=3,
+       include.loglik = F,
+       include.aic=F,
+       include.bic=F
+)
+```
+
+
+
