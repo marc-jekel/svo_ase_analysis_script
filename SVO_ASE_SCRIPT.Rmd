@@ -997,7 +997,7 @@ cor.test(SVO_part,score_indiv_search)
 ### Correlation between SVO ring measure and SVO slider from Decision Lab Cologne
 
 ```{r}
-SVO_dlc = read.csv("SVO_dlc.csv")
+SVO_dlc = read.csv("svo_dlc.csv")
 
 date_slider = SVO_dlc$Date
 date_slider = str_sub(date_slider, 1, 10)
