@@ -16,7 +16,6 @@ output:
 
 
 ```{r}
-
 rm(list = ls())
 
 set.seed(1234)
