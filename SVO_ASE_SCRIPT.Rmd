@@ -610,7 +610,6 @@ pl_other_s1 = pl_3
 
 ```
 
-
 # Study 2
 
 ## Read in data
@@ -1639,6 +1638,48 @@ texreg(mod_expl, custom.coef.names=names_mod,
        include.aic=F,
        include.bic=F
 )
+```
+
+
+# Raw data
+
+The raw data is printed here for reproducibility.
+
+## Study 1
+
+```{r}
+
+kbl(dats_s1) %>%
+  kable_styling(bootstrap_options = c("striped","hover"), font_size = 5)
+
+
+```
+
+## Study 2, Session 1
+
+```{r}
+
+kbl(dats_s2_1) %>%
+  kable_styling(bootstrap_options = c("striped","hover"), font_size = 5)
+
+```
+
+## Study 2, Session 2
+
+```{r}
+
+kbl(dats_s2_2) %>%
+  kable_styling(bootstrap_options = c("striped","hover"), font_size = 5)
+
+```
+
+## Study 2, SVO DLC
+
+```{r}
+
+kbl(SVO_dlc) %>%
+  kable_styling(bootstrap_options = c("striped","hover"), font_size = 5)
+
 ```
 
 
