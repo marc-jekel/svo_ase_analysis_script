@@ -317,6 +317,9 @@ ggplot(ASE_pros_m_pl, aes(x=ASE_pros_m)) + geom_histogram() +
 mean(ASE_pros_m)
 sd(ASE_pros_m)
 
+t.test(ASE_pros_m,mu=50)
+
+
 ```
 
 ## Correlation between SVO and ASE
