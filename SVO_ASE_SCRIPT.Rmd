@@ -999,6 +999,8 @@ ggplot(score_indiv_search_pl, aes(x=X100...score_indiv_search.20)) + geom_histog
 mean(unlist(score_indiv_search_pl))
 sd(unlist(score_indiv_search_pl))
 
+t.test(unlist(score_indiv_search_pl),mu=50)
+
 table_perc_search_s2 = cbind(indiv_search,search_nondiag_study_2)
 table_perc_search_s2 = round(100-colMeans(table_perc_search_s2) * 100)
 
