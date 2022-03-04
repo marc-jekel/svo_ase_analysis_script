@@ -151,6 +151,14 @@ SVO_part = SVO_part[is.na(SVO_part)==FALSE]
 mean(SVO_part)
 sd(SVO_part)
 
+n = length(SVO_part)
+
+round(sum(SVO_part >= -22.5 & SVO_part <= 22.5)/n,2)
+round(sum(SVO_part > 22.5 & SVO_part <= 67.5)/n,2)
+
+sum(SVO_part == 0) / n
+sum(SVO_part == 45) / n
+
 ```
 
 ## Demographics
@@ -796,6 +804,14 @@ ggplot(SVO_part_pl, aes(x=SVO_part)) + geom_histogram() +
 
 mean(SVO_part)
 sd(SVO_part)
+
+n = length(SVO_part)
+
+round(sum(SVO_part >= -22.5 & SVO_part <= 22.5)/n,2)
+round(sum(SVO_part > 22.5 & SVO_part <= 67.5)/n,2)
+
+sum(SVO_part == 0) / n
+sum(SVO_part == 45) / n
 
 ```
 
