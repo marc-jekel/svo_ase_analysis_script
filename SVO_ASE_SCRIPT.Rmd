@@ -942,6 +942,10 @@ search = dats_s2_2  %>% select(
 
 search = ifelse(search == "Verdeckter Betrag der linken Option",1,2)
 
+pref_ratings = 
+dats_s2_2 %>% select(
+  contains("_SVO_pref_1"))
+
 for(loop_part in 1 : nrow(dats_s2_2)){
   for(loop_trial in 1 :24){
     
@@ -954,6 +958,8 @@ for(loop_part in 1 : nrow(dats_s2_2)){
       
       search[loop_part,loop_trial] = 
         ifelse(search[loop_part,loop_trial] == 2,1,2)
+      
+      pref_ratings[loop_part,loop_trial] =  -1 * pref_ratings[loop_part,loop_trial]
       
     }
   }
@@ -982,6 +988,8 @@ sd(unlist(score_indiv_search_pl))
 
 table_perc_search_s2 = cbind(indiv_search,search_nondiag_study_2)
 table_perc_search_s2 = round(100-colMeans(table_perc_search_s2) * 100)
+
+
 
 ```
 
@@ -1053,6 +1061,31 @@ cond = dats_s2_2$preference
 cond = as.numeric(cond)
 
 table(cond)
+
+####
+
+pref_ratings = (pref_ratings[cond==1,1:20])
+
+indiv_search_with_pref = indiv_search[cond==1,]
+
+SVO_part_with_pred = SVO_part[cond==1]
+
+mean(pref_ratings[indiv_search_with_pref == 1])
+mean(pref_ratings[indiv_search_with_pref == 0])
+
+t.test(pref_ratings[indiv_search_with_pref == 1],
+       pref_ratings[indiv_search_with_pref == 0])
+
+indiv_search_with_pref_vector = c(t(indiv_search_with_pref))
+pref_ratings_vector = c(t(pref_ratings))
+partic_indic = rep(1:nrow(indiv_search_with_pref),each=20)
+
+mod = glmer(indiv_search_with_pref_vector ~ pref_ratings_vector + (1|partic_indic),
+              family = "binomial")
+
+summary(mod)
+
+
 ```
 
 ### Correlation per condition
