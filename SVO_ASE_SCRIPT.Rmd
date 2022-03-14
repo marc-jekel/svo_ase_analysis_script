@@ -1062,19 +1062,18 @@ cond = as.numeric(cond)
 
 table(cond)
 
-####
+#### rework
 
-pref_ratings = (pref_ratings[cond==1,1:20])
+pref_ratings_sub = (pref_ratings[cond==1,1:20])
+pref_ratings_sub = data.frame(pref_ratings_sub)
 
 indiv_search_with_pref = indiv_search[cond==1,]
 
 SVO_part_with_pred = SVO_part[cond==1]
 
-mean(pref_ratings[indiv_search_with_pref == 1])
-mean(pref_ratings[indiv_search_with_pref == 0])
-
 indiv_search_with_pref_vector = c(t(indiv_search_with_pref))
-pref_ratings_vector = c(t(pref_ratings))
+pref_ratings_vector = c(t(pref_ratings_sub))
+pref_ratings_vector = pref_ratings_vector - mean(pref_ratings_vector)
 pref_ratings_vector = pref_ratings_vector / sd(pref_ratings_vector)
 partic_indic = rep(1:nrow(indiv_search_with_pref),each=20)
 
