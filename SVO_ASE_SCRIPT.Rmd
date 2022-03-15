@@ -1017,9 +1017,25 @@ date_slider = date_slider[order(date_slider$year,date_slider$month),]
 date_slider = table(date_slider$year,date_slider$month)
 date_slider =cbind(date_slider,rowSums(date_slider ),rowSums(date_slider )/sum(date_slider))
 
-sum((7 - c(1:8,10:12)) * date_slider[3,1:11] +
-(7 + c(12:10,8:1)) * date_slider[2,1:11] +
-(7 +12 + c(12:10,8:1)) * date_slider[3,1:11]) /n_part_s2
+months_before = rbind(
+(7 +12 + c(12:10,8:1)),  
+(7 + c(12:10,8:1)),  
+(7 - c(1:8,10:12))
+)
+
+loop_count = 1
+indiv_mont = numeric()
+
+for(loop in c(date_slider[,1:11])){
+  
+  indiv_mont = c(indiv_mont, 
+                 rep(c(months_before)[loop_count],loop))
+  loop_count = loop_count + 1
+}
+
+mean(indiv_mont)
+
+sd(indiv_mont)
 
 cor.test(SVO_dlc$SVSangle,SVO_part)
 
