@@ -392,6 +392,8 @@ ggMarginal(scatterP, type="densigram")
 dev.off()
 
 ggMarginal(scatterP, type="densigram")
+
+pl_1 = ggMarginal(scatterP, type="densigram")
 ```
 
 ## Multilevel regression models
@@ -1251,6 +1253,9 @@ dev.off()
 ```{r, fig.width=10,fig.height=7}
 ggMarginal(scatterP, type="densigram")
 
+pl_2 = ggMarginal(scatterP, type="densigram")
+
+grid.arrange(pl_1, pl_2, nrow = 1)
 
 ```
 
