@@ -403,6 +403,8 @@ ggMarginal(scatterP, type="densigram")
 dev.off()
 
 ggMarginal(scatterP, type="densigram")
+
+pl_1 = ggMarginal(scatterP, type="densigram")
 ```
 
 ## Multilevel regression models
@@ -818,7 +820,7 @@ sum(SVO_part == 45) / n
 
 ```
 
-## Session 2
+= = =## Session 2
 
 ### Tasks with concealed information
 
@@ -961,6 +963,10 @@ search = dats_s2_2  %>% select(
 
 search = ifelse(search == "Verdeckter Betrag der linken Option",1,2)
 
+pref_ratings = 
+dats_s2_2 %>% select(
+  contains("_SVO_pref_1"))
+
 for(loop_part in 1 : nrow(dats_s2_2)){
   for(loop_trial in 1 :24){
     
@@ -973,6 +979,8 @@ for(loop_part in 1 : nrow(dats_s2_2)){
       
       search[loop_part,loop_trial] = 
         ifelse(search[loop_part,loop_trial] == 2,1,2)
+      
+      pref_ratings[loop_part,loop_trial] =  -1 * pref_ratings[loop_part,loop_trial]
       
     }
   }
@@ -1004,6 +1012,8 @@ t.test(unlist(score_indiv_search_pl),mu=50)
 table_perc_search_s2 = cbind(indiv_search,search_nondiag_study_2)
 table_perc_search_s2 = round(100-colMeans(table_perc_search_s2) * 100)
 
+
+
 ```
 
 ## Correlation between ASE and SVO
@@ -1030,9 +1040,25 @@ date_slider = date_slider[order(date_slider$year,date_slider$month),]
 date_slider = table(date_slider$year,date_slider$month)
 date_slider =cbind(date_slider,rowSums(date_slider ),rowSums(date_slider )/sum(date_slider))
 
-sum((7 - c(1:8,10:12)) * date_slider[3,1:11] +
-(7 + c(12:10,8:1)) * date_slider[2,1:11] +
-(7 +12 + c(12:10,8:1)) * date_slider[3,1:11]) /n_part_s2
+months_before = rbind(
+(7 +12 + c(12:10,8:1)),  
+(7 + c(12:10,8:1)),  
+(7 - c(1:8,10:12))
+)
+
+loop_count = 1
+indiv_mont = numeric()
+
+for(loop in c(date_slider[,1:11])){
+  
+  indiv_mont = c(indiv_mont, 
+                 rep(c(months_before)[loop_count],loop))
+  loop_count = loop_count + 1
+}
+
+mean(indiv_mont)
+
+sd(indiv_mont)
 
 cor.test(SVO_dlc$SVSangle,SVO_part)
 
@@ -1076,6 +1102,28 @@ cond = dats_s2_2$preference
 cond = as.numeric(cond)
 
 table(cond)
+
+#### rework
+
+pref_ratings_sub = (pref_ratings[cond==1,1:20])
+pref_ratings_sub = data.frame(pref_ratings_sub)
+
+indiv_search_with_pref = indiv_search[cond==1,]
+
+SVO_part_with_pred = SVO_part[cond==1]
+
+indiv_search_with_pref_vector = c(t(indiv_search_with_pref))
+pref_ratings_vector = c(t(pref_ratings_sub))
+pref_ratings_vector = pref_ratings_vector - mean(pref_ratings_vector)
+pref_ratings_vector = pref_ratings_vector / sd(pref_ratings_vector)
+partic_indic = rep(1:nrow(indiv_search_with_pref),each=20)
+
+mod = glmer(indiv_search_with_pref_vector ~ pref_ratings_vector + (1|partic_indic),
+              family = "binomial")
+
+summary(mod)
+
+
 ```
 
 ### Correlation per condition
@@ -1228,6 +1276,9 @@ dev.off()
 ```{r, fig.width=10,fig.height=7}
 ggMarginal(scatterP, type="densigram")
 
+pl_2 = ggMarginal(scatterP, type="densigram")
+
+grid.arrange(pl_1, pl_2, nrow = 1)
 
 ```
 
@@ -1587,7 +1638,7 @@ tasks_svo_table = cbind(rbind(tasks_svo_table_1[incl==1,],tasks_svo_table_1[incl
 
 tasks_svo_table[,1] = 1:24
 
-cor.test(table_perc_search_s1[1:20],table_perc_search_s2[1:20])
+cor.test(table_perc_search_s1[1:20],table_perc_search_s2[1:20], method = "spearman")
 plot(table_perc_search_s1[1:20],table_perc_search_s2[1:20])
 
 
