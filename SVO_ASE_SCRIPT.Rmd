@@ -1036,6 +1036,8 @@ sum((7 - c(1:8,10:12)) * date_slider[3,1:11] +
 
 cor.test(SVO_dlc$SVSangle,SVO_part)
 
+cor.test(SVO_dlc$SVSangle,SVO_part,method="spearman")
+
 SVOscales = data.frame(SVO_dlc$SVSangle,SVO_part)
 
 names(SVOscales) = c("SVO_slider","SVO_ring")
@@ -1289,6 +1291,8 @@ names_mod = c("Intercept","SVO", "Pref. assesm.", "SVO x Pref. assesm.")
 
 htmlreg(mod, custom.coef.names=names_mod,digits=3)
 
+summary( glmer(search ~ SVO * Pref + (1|id),data=dats_analy,
++                family = "binomial"))
 
 ```
 
