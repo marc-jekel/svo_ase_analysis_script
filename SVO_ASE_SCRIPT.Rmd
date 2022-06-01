@@ -1326,6 +1326,35 @@ htmlreg(mod, custom.coef.names=names_mod,digits=3)
 texreg(mod, custom.coef.names=names_mod,digits=3)
 ```
 
+### SVO Slider DLC
+
+
+```{r}
+
+
+dats_analy_dlc = cbind(dats_analy,SVO_dlc =SVO_dlc$SVSangle)
+
+dats_analy_dlc$SVO_dlc = dats_analy_dlc$SVO_dlc - mean(dats_analy_dlc$SVO_dlc)
+
+mod_dlc = list()
+
+mod_dlc[1] = glmer(search ~ SVO_dlc  + (1|id),data=dats_analy_dlc,
+               family = "binomial")
+
+mod_dlc[2] = glmer(search ~ SVO_dlc * Pref + (1|id),data=dats_analy_dlc,
+               family = "binomial")
+
+```
+
+
+```{r, results = 'asis'}
+
+names_mod = c("Intercept","SVO", "Pref. assesm.", "SVO x Pref. assesm.")
+
+htmlreg(mod_dlc, custom.coef.names=names_mod,digits=3)
+
+
+```
 
 ### Prepare plot model predictions
 
