@@ -1339,7 +1339,7 @@ names_mod = c("Intercept","SVO", "Pref. assesm.", "SVO x Pref. assesm.")
 htmlreg(mod, custom.coef.names=names_mod,digits=3)
 
 summary( glmer(search ~ SVO * Pref + (1|id),data=dats_analy,
-+                family = "binomial"))
+               family = "binomial"))
 
 ```
 
