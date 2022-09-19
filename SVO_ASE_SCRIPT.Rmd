@@ -651,8 +651,10 @@ round(100 * table(c(ASE_pros),c(choice_s_1_single_diagn))/sum(table(c(ASE_pros),
 
 cor.test(res$ASE_pros_m,rowMeans(choice_s_1_single_diagn),method = "spearman")
 cor.test(res$SVO_part,rowMeans(choice_s_1_single_diagn),method = "spearman")
-plot(res$ASE_pros_m,rowMeans(choice_s_1_single_diagn),xlab = "ASE", ylab = "choice pro-social")
-plot(res$SVO_part,rowMeans(choice_s_1_single_diagn),xlab = "SVO", ylab = "choice pro-social")
+
+plot(res$ASE_pros_m,rowMeans(choice_s_1_single_diagn),xlab = "ASE", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
+
+plot(res$SVO_part,rowMeans(choice_s_1_single_diagn),xlab = "SVO", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
 ```
 
 
@@ -1615,8 +1617,8 @@ choice_s_2_01 = ifelse(choice_s_2 == 2,1,0)
 cor.test(rowMeans(choice_s_2_01),score_indiv_search,method = "spearman")
 cor.test(rowMeans(choice_s_2_01),SVO_part,method = "spearman")
 
-plot(100*(score_indiv_search/20),rowMeans(choice_s_2_01),xlab = "ASE", ylab = "choice pro-social")
-plot(SVO_part,rowMeans(choice_s_2_01),xlab = "SVO", ylab = "choice pro-social")
+plot(100*(score_indiv_search/20),rowMeans(choice_s_2_01),xlab = "ASE", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
+plot(SVO_part,rowMeans(choice_s_2_01),xlab = "SVO", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
 
 ```
 
