@@ -35,6 +35,7 @@ library("ggpubr")
 library("ggeffects")
 library("osfr")
 library("kableExtra")
+library("mediation")
 
 loadData = 0
 
@@ -661,8 +662,6 @@ plot(res$SVO_part,rowMeans(choice_s_1_single_diagn),xlab = "SVO", ylab = "choice
 med_data = data.frame("choice" = rowMeans(choice_s_1_single_diagn),
             "SVO" = res$SVO_part,
             "ASE" = res$ASE_pros_m)
-
-library(mediation)
 
 fit.mediator=lm(ASE~SVO,data=med_data)
 fit.dv=lm(choice~SVO+ASE,data=med_data)
