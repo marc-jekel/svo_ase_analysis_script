@@ -621,7 +621,7 @@ pl_other_s1 = pl_3
 
 ```
 
-## Correlation between AS, SVO, and choice
+## Correlation between ASE, SVO, and choice
 
 ```{r}
 
