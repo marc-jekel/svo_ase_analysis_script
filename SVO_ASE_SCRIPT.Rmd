@@ -1571,7 +1571,10 @@ pl_5 = ggplot(pl_data, aes(x, predicted)) +
 
 choice_s_2 = choice[,-c(12,13,19,20)]
 
-round(table(c(choice_s_2),c(search)) / sum(table(c(choice_s_2),c(search)) ) * 100)
+round(table(c(search),c(choice_s_2)) / sum(table(c(choice_s_2),c(search)) ) * 100)
+
+table(c(search),c(choice_s_2))
+
 
 ```
 
