@@ -60,7 +60,6 @@ sessionInfo()
 
 ```{r}
 dats_s1 = read.csv2("data_study_1.csv")
-
 ```
 
 ## Tasks social value orientation
@@ -621,6 +620,42 @@ pl_self_s1 = pl_2
 pl_other_s1 = pl_3
 
 ```
+
+## Correlation between AS, SVO, and choice
+
+```{r}
+
+choice_s_1 = dats_s1[,39:110]
+choice_s_1 = (choice_s_1[,-seq(1,72,3)])
+choice_s_1 = matrix(ifelse(unlist(choice_s_1) == -77,0,
+                           unlist(choice_s_1)),ncol=ncol(choice_s_1))
+
+choice_s_1_single = numeric()
+
+for(loop_single in 1 : (ncol(choice_s_1)/2)){
+  
+  choice_s_1_single = cbind(choice_s_1_single,
+                            rowSums(choice_s_1[,(1:2)+(2*(loop_single-1))]))
+  
+}
+
+choice_s_1_single = ifelse(choice_s_1_single == 4,1,choice_s_1_single)
+choice_s_1_single = ifelse(choice_s_1_single == 3,2,choice_s_1_single)
+choice_s_1_single = ifelse(choice_s_1_single == 2,1,0)
+colnames(choice_s_1_single) = paste("item",1:24,sep="")
+choice_s_1_single_diagn = choice_s_1_single[,-c(12,13,19,20)]
+
+round(100 * table(c(ASE_pros),c(choice_s_1_single_diagn))/sum(table(c(ASE_pros),
+                                                                    c(choice_s_1_single_diagn))))
+
+
+cor.test(res$ASE_pros_m,rowMeans(choice_s_1_single_diagn),method = "spearman")
+cor.test(res$SVO_part,rowMeans(choice_s_1_single_diagn),method = "spearman")
+plot(res$ASE_pros_m,rowMeans(choice_s_1_single_diagn),xlab = "ASE", ylab = "choice pro-social")
+plot(res$SVO_part,rowMeans(choice_s_1_single_diagn),xlab = "SVO", ylab = "choice pro-social")
+```
+
+
 
 # Study 2
 
@@ -1565,7 +1600,7 @@ pl_5 = ggplot(pl_data, aes(x, predicted)) +
 
 ```
 
-## Choice in session 2
+## Correlation between ASE, SVO, and choice
 
 ```{r}
 
@@ -1575,6 +1610,13 @@ round(table(c(search),c(choice_s_2)) / sum(table(c(choice_s_2),c(search)) ) * 10
 
 table(c(search),c(choice_s_2))
 
+choice_s_2_01 = ifelse(choice_s_2 == 2,1,0)
+
+cor.test(rowMeans(choice_s_2_01),score_indiv_search,method = "spearman")
+cor.test(rowMeans(choice_s_2_01),SVO_part,method = "spearman")
+
+plot(100*(score_indiv_search/20),rowMeans(choice_s_2_01),xlab = "ASE", ylab = "choice pro-social")
+plot(SVO_part,rowMeans(choice_s_2_01),xlab = "SVO", ylab = "choice pro-social")
 
 ```
 
