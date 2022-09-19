@@ -25,7 +25,6 @@ library("gridExtra")
 library("grid")
 library("readr")
 library("ggExtra")
-library("dplyr")
 library("readxl")
 library("tidyverse")
 library("lme4")
@@ -36,6 +35,7 @@ library("ggeffects")
 library("osfr")
 library("kableExtra")
 library("mediation")
+library("dplyr")
 
 loadData = 0
 
@@ -741,12 +741,12 @@ table(days)
 
 
 ```{r}
-order_pres = dats_s2_1 %>% select(contains("Trial"))
+order_pres = dats_s2_1 %>% dplyr::select(contains("Trial"))
 
 order_pres = matrix(as.numeric(unlist(order_pres)),
                     ncol = ncol(order_pres))
 
-order_options = dats_s2_1 %>% select(
+order_options = dats_s2_1 %>% dplyr::select(
   contains("Pres"))
 
 order_options = order_options[,2:ncol(order_options)]
@@ -754,7 +754,7 @@ order_options = order_options[,2:ncol(order_options)]
 order_options = matrix(as.numeric(unlist(order_options)),
                        ncol = ncol(order_options))
 
-choice = dats_s2_1 %>% select(
+choice = dats_s2_1 %>% dplyr::select(
   contains("SVO_choice"))
 choice = ifelse(choice == "Linke Option",1,2)
 
@@ -991,12 +991,12 @@ ggplot(total_money, aes(x=total_money)) + geom_histogram() +
 
 ```{r}
 
-order_pres = dats_s2_2 %>% select(
+order_pres = dats_s2_2 %>% dplyr::select(
   contains("Trial"))
 order_pres = matrix(as.numeric(unlist(order_pres)),
                     ncol = ncol(order_pres))
 
-order_options = dats_s2_2 %>% select(
+order_options = dats_s2_2 %>% dplyr::select(
   contains("Pres"))
 
 order_options = order_options[,1:24]
@@ -1004,18 +1004,18 @@ order_options = order_options[,1:24]
 order_options = matrix(as.numeric(unlist(order_options)),
                        ncol = ncol(order_options))
 
-choice = dats_s2_2 %>% select(
+choice = dats_s2_2 %>% dplyr::select(
   contains("SVO_choice"))
 choice = ifelse(choice == "Linke Option",1,2)
 
-search = dats_s2_2  %>% select(
+search = dats_s2_2  %>% dplyr::select(
   contains("search") & !contains("Time") &  !contains("example")
 )
 
 search = ifelse(search == "Verdeckter Betrag der linken Option",1,2)
 
 pref_ratings = 
-dats_s2_2 %>% select(
+dats_s2_2 %>% dplyr::select(
   contains("_SVO_pref_1"))
 
 for(loop_part in 1 : nrow(dats_s2_2)){
@@ -1662,11 +1662,11 @@ summary(results)
 
 ```{r}
 
-rt = dats_s2_2  %>% select(
+rt = dats_s2_2  %>% dplyr::select(
   contains("Time_search_Page Submit")
     )
 
-order_items = dats_s2_2 %>% select(contains("Trial_"))
+order_items = dats_s2_2 %>% dplyr::select(contains("Trial_"))
 
 rt = rt[,-c(12,13,19,20)]
 
