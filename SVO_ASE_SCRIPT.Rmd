@@ -655,6 +655,23 @@ cor.test(res$SVO_part,rowMeans(choice_s_1_single_diagn),method = "spearman")
 plot(res$ASE_pros_m,rowMeans(choice_s_1_single_diagn),xlab = "ASE", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
 
 plot(res$SVO_part,rowMeans(choice_s_1_single_diagn),xlab = "SVO", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
+
+###
+
+med_data = data.frame("choice" = rowMeans(choice_s_1_single_diagn),
+            "SVO" = res$SVO_part,
+            "ASE" = res$ASE_pros_m)
+
+library(mediation)
+
+fit.mediator=lm(ASE~SVO,data=med_data)
+fit.dv=lm(choice~SVO+ASE,data=med_data)
+
+results = mediate(fit.mediator, fit.dv, treat="SVO", 
+                  mediator="ASE", boot=T)
+
+summary(results)
+
 ```
 
 
@@ -725,8 +742,7 @@ table(days)
 
 
 ```{r}
-order_pres = dats_s2_1 %>% select(
-  contains("Trial"))
+order_pres = dats_s2_1 %>% select(contains("Trial"))
 
 order_pres = matrix(as.numeric(unlist(order_pres)),
                     ncol = ncol(order_pres))
@@ -1619,6 +1635,24 @@ cor.test(rowMeans(choice_s_2_01),SVO_part,method = "spearman")
 
 plot(100*(score_indiv_search/20),rowMeans(choice_s_2_01),xlab = "ASE", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
 plot(SVO_part,rowMeans(choice_s_2_01),xlab = "SVO", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
+
+
+### mediation
+
+
+med_data = data.frame("choice" = rowMeans(choice_s_2_01),
+            "SVO" = SVO_part,
+            "ASE" = score_indiv_search)
+
+library(mediation)
+
+fit.mediator=lm(ASE~SVO,data=med_data)
+fit.dv=lm(choice~SVO+ASE,data=med_data)
+
+results = mediate(fit.mediator, fit.dv, treat="SVO", 
+                  mediator="ASE", boot=T)
+
+summary(results)
 
 ```
 
