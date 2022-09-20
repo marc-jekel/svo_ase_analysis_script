@@ -653,6 +653,13 @@ round(100 * table(c(ASE_pros),c(choice_s_1_single_diagn))/sum(table(c(ASE_pros),
 cor.test(res$ASE_pros_m,rowMeans(choice_s_1_single_diagn),method = "spearman")
 cor.test(res$SVO_part,rowMeans(choice_s_1_single_diagn),method = "spearman")
 
+## susa
+
+overlap_search_choice = ifelse(choice_s_1_single_diagn == ASE_pros, 1, 0)
+cor.test(res$SVO_part,rowSums(overlap_search_choice),method = "spearman")
+
+###
+
 plot(res$ASE_pros_m,rowMeans(choice_s_1_single_diagn),xlab = "ASE", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
 
 plot(res$SVO_part,rowMeans(choice_s_1_single_diagn),xlab = "SVO", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
@@ -1635,6 +1642,12 @@ cor.test(rowMeans(choice_s_2_01),SVO_part,method = "spearman")
 plot(100*(score_indiv_search/20),rowMeans(choice_s_2_01),xlab = "ASE", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
 plot(SVO_part,rowMeans(choice_s_2_01),xlab = "SVO", ylab = "choice pro-social",pch=16,   col = alpha("black", 0.2))
 
+## susa
+
+search_susa = ifelse(search == 2,1,0)
+
+overlap_search_choice = ifelse(choice_s_2_01 == search_susa, 1, 0)
+cor.test(SVO_part,rowMeans(overlap_search_choice),method = "spearman")
 
 ### mediation
 
