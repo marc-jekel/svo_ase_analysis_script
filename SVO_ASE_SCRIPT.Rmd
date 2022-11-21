@@ -835,6 +835,8 @@ colnames(SVO_tasks_1) = c("S_1",	"O_1",	"S_2",	"O_2")
 
 SVO_tasks_1 = matrix(unlist(SVO_tasks_1),ncol = ncol(SVO_tasks_1))
 
+self_other_mean_all = numeric()
+
 for(loopP in 1 : nrow(dats_s2_1)){
   
   tasks_svo_p = numeric()
@@ -856,6 +858,8 @@ for(loopP in 1 : nrow(dats_s2_1)){
   
   SVO_part = c(SVO_part,
                atan(self_other_mean[2]/self_other_mean[1])*180/pi)
+  
+  self_other_mean_all = rbind(self_other_mean_all,self_other_mean)
 }
 
 
