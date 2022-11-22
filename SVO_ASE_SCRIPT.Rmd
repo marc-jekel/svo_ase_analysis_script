@@ -136,6 +136,10 @@ for(loopP in 1 : nrow(dats_s1)){
                atan(self_other_mean[2]/self_other_mean[1])*180/pi)
 }
 
+### remove all participants with atan(0/0)
+
+SVO_part[which(rowSums(round(self_other_weights,5) == 0) == 2)] = NA
+
 SVO_part_pl = data.frame(SVO_part)
 
 ggplot(SVO_part_pl, aes(x=SVO_part)) + geom_histogram() + 
