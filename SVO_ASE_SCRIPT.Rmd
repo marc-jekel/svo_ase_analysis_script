@@ -160,8 +160,8 @@ n = length(SVO_part)
 round(sum(SVO_part >= -22.5 & SVO_part <= 22.5)/n,2)
 round(sum(SVO_part > 22.5 & SVO_part <= 67.5)/n,2)
 
-sum(SVO_part == 0) / n
-sum(SVO_part == 45) / n
+round(sum(round(SVO_part,5) == 0) / n,2)
+round(sum(round(SVO_part,5) == 45) / n,2)
 
 ```
 
