@@ -1123,7 +1123,8 @@ for(loop in c(date_slider[,1:11])){
 }
 
 mean(indiv_mont)
-
+median(indiv_mont)
+barplot(indiv_mont)
 sd(indiv_mont)
 
 cor.test(SVO_dlc$SVSangle,SVO_part)
