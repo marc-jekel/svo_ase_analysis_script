@@ -17,7 +17,7 @@ output:
 
 ```{r}
 rm(list = ls())
-
+ee
 set.seed(1234)
 
 library("ggplot2")
