@@ -351,8 +351,8 @@ scatterP<- ggplot(data = res, aes(x = SVO_part, y = ASE_pros_m)) +
   geom_segment(aes(x=0,xend=0,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
   geom_segment(aes(x=45,xend=45,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
   geom_segment(aes(x=90,xend=90,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
-  geom_segment(aes(x=-90,xend=90,y=30,yend=30), color = "black", size=.3,linetype="dotted")+
-  geom_segment(aes(x=-90,xend=90,y=70,yend=70), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-90,xend=90,y=25,yend=25), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-90,xend=90,y=75,yend=75), color = "black", size=.3,linetype="dotted")+
   geom_smooth(data = res, aes(x = SVO_part, y = ASE_pros_m),
               method = "lm", se = FALSE, lwd = 1, inherit.aes = FALSE,
               col ="grey")+
@@ -407,6 +407,26 @@ ggMarginal(scatterP, type="densigram")
 dev.off()
 
 ggMarginal(scatterP, type="densigram")
+
+```
+
+## Test of individuals
+
+```{r}
+
+coop_above = mean(res$ASE_pros_m[res$SVO_part>22.5 &   res$SVO_part<67.5]  > 75)
+coop_below = mean(res$ASE_pros_m[res$SVO_part>22.5 &   res$SVO_part<67.5]  < 25)
+coop_above
+coop_below
+1 - coop_above - coop_below
+
+indiv_above = mean(res$ASE_pros_m[res$SVO_part>-22.5 &   res$SVO_part<22.5] > 75)
+indiv_below = mean(res$ASE_pros_m[res$SVO_part>-22.5 &   res$SVO_part<22.5] < 25)
+indiv_above
+indiv_below
+1 - indiv_above - indiv_below
+
+binom.test(5,20,.5)
 
 ```
 
@@ -1079,7 +1099,6 @@ table_perc_search_s2 = cbind(indiv_search,search_nondiag_study_2)
 table_perc_search_s2 = round(100-colMeans(table_perc_search_s2) * 100)
 
 
-
 ```
 
 ## Correlation between ASE and SVO
@@ -1253,8 +1272,8 @@ scatterP<- ggplot(data = res_fin, aes(x = SVO_part, y = ASE_pros_m)) +
   geom_segment(aes(x=0,xend=0,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
   geom_segment(aes(x=45,xend=45,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
   geom_segment(aes(x=90,xend=90,y=-3,yend=100), color = "black", size=.3,linetype="dotted")+
-  geom_segment(aes(x=-90,xend=90,y=30,yend=30), color = "black", size=.3,linetype="dotted")+
-  geom_segment(aes(x=-90,xend=90,y=70,yend=70), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-90,xend=90,y=25,yend=25), color = "black", size=.3,linetype="dotted")+
+  geom_segment(aes(x=-90,xend=90,y=75,yend=75), color = "black", size=.3,linetype="dotted")+
   geom_smooth(data = res_fin, aes(x = SVO_part, y = ASE_pros_m),
               method = "lm", se = FALSE, lwd = 1, inherit.aes = FALSE,
               col ="grey")+
@@ -1352,6 +1371,27 @@ ggMarginal(scatterP, type="densigram")
 
 
 ggMarginal(scatterP_g, type="boxplot", groupColour=T,size=8)
+```
+
+
+## Test of individuals
+
+```{r}
+
+coop_above = mean(res_fin$ASE_pros_m[res_fin$SVO_part>22.5 &   res_fin$SVO_part<67.5]  > 75)
+coop_below = mean(res_fin$ASE_pros_m[res_fin$SVO_part>22.5 &   res_fin$SVO_part<67.5]  < 25)
+coop_above
+coop_below
+1 - coop_above - coop_below
+
+indiv_above = mean(res_fin$ASE_pros_m[res_fin$SVO_part>-22.5 &   res_fin$SVO_part<22.5] > 75)
+indiv_below = mean(res_fin$ASE_pros_m[res_fin$SVO_part>-22.5 &   res_fin$SVO_part<22.5] < 25)
+indiv_above
+indiv_below
+1 - indiv_above - indiv_below
+
+binom.test(5,20,.5)
+
 ```
 
 ## Multilevel regression models
