@@ -17,7 +17,6 @@ output:
 
 ```{r}
 rm(list = ls())
-ee
 set.seed(1234)
 
 library("ggplot2")
@@ -410,18 +409,18 @@ ggMarginal(scatterP, type="densigram")
 
 ```
 
-## Test of individuals
+## Individual Search
 
 ```{r}
 
-coop_above = mean(res$ASE_pros_m[res$SVO_part>22.5 &   res$SVO_part<67.5]  > 75)
-coop_below = mean(res$ASE_pros_m[res$SVO_part>22.5 &   res$SVO_part<67.5]  < 25)
+coop_above = mean(res$ASE_pros_m[res$SVO_part>=22.5]  > 75)
+coop_below = mean(res$ASE_pros_m[res$SVO_part>22.5]  < 25)
 coop_above
 coop_below
 1 - coop_above - coop_below
 
-indiv_above = mean(res$ASE_pros_m[res$SVO_part>-22.5 &   res$SVO_part<22.5] > 75)
-indiv_below = mean(res$ASE_pros_m[res$SVO_part>-22.5 &   res$SVO_part<22.5] < 25)
+indiv_above = mean(res$ASE_pros_m[ res$SVO_part<22.5] > 75)
+indiv_below = mean(res$ASE_pros_m[res$SVO_part<22.5] < 25)
 indiv_above
 indiv_below
 1 - indiv_above - indiv_below
@@ -1369,28 +1368,25 @@ ggMarginal(scatterP, type="densigram")
 
 ```{r, fig.width=10,fig.height=7}
 
-
 ggMarginal(scatterP_g, type="boxplot", groupColour=T,size=8)
 ```
 
 
-## Test of individuals
+## Individual Search
 
 ```{r}
 
-coop_above = mean(res_fin$ASE_pros_m[res_fin$SVO_part>22.5 &   res_fin$SVO_part<67.5]  > 75)
-coop_below = mean(res_fin$ASE_pros_m[res_fin$SVO_part>22.5 &   res_fin$SVO_part<67.5]  < 25)
+coop_above = mean(res_fin$ASE_pros_m[res_fin$SVO_part>=22.5]  > 75)
+coop_below = mean(res_fin$ASE_pros_m[res_fin$SVO_part>=22.5]  < 25)
 coop_above
 coop_below
 1 - coop_above - coop_below
 
-indiv_above = mean(res_fin$ASE_pros_m[res_fin$SVO_part>-22.5 &   res_fin$SVO_part<22.5] > 75)
-indiv_below = mean(res_fin$ASE_pros_m[res_fin$SVO_part>-22.5 &   res_fin$SVO_part<22.5] < 25)
+indiv_above = mean(res_fin$ASE_pros_m[res_fin$SVO_part<22.5] > 75)
+indiv_below = mean(res_fin$ASE_pros_m[res_fin$SVO_part<22.5] < 25)
 indiv_above
 indiv_below
 1 - indiv_above - indiv_below
-
-binom.test(5,20,.5)
 
 ```
 
